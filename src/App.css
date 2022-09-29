@@ -36,3 +36,21 @@
     transform: rotate(360deg);
   }
 }
+
+.editorDiv {
+  float: left;
+  width: 48%;
+}
+
+.consoleDiv {
+  float: right;
+  width: 48%;
+}
+
+.run_btn {
+  padding-left: 5px;
+}
+
+.ide_box {
+  padding-top: 10px;
+}

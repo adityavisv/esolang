@@ -14,7 +14,7 @@ const checkParentheses = (source_code_buf) => {
 
 export const runInputInstruction = (brainfuckState, inputCharacter) => {
     var {brainfuckTape, brainfuckTapePtr, instructionPtr} = brainfuckState;
-    brainfuckTape[brainfuckTapePtr] = parseInt(inputCharacter);
+    brainfuckTape[brainfuckTapePtr] = inputCharacter.charCodeAt(0);
     instructionPtr++;
     brainfuckState = {
         ...brainfuckState,
