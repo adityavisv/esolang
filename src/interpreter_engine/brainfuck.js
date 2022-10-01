@@ -3,7 +3,7 @@ import { E_COMPLETE, E_IO_PAUSE, E_SYNTAX_ERR } from "./brainfuck_constants";
 const checkParentheses = (source_code_buf) => {
     var bracketCount = 0;
 
-    [...source_code_buf].forEach((c) => {
+    [...source_code_buf].forEach((c) => { 
         if (c === '[')
             bracketCount++;
         else if (c === ']')

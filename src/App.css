@@ -40,6 +40,7 @@
 .editorDiv {
   float: left;
   width: 48%;
+  margin-left: 2%;
 }
 
 .consoleDiv {
@@ -47,10 +48,18 @@
   width: 48%;
 }
 
-.run_btn {
-  padding-left: 5px;
-}
+
 
 .ide_box {
   padding-top: 10px;
 }
+
+#console_textarea {
+  background-color: black;
+  color: white;
+  resize: none;
+  width: 90%;
+  height: 85vh;
+  caret-color: white;
+}
+
