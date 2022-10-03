@@ -18,7 +18,7 @@ class Toolbar extends React.Component {
                     <InfoOverlay
                         render={({ close, labelId, descriptionId }) => (
                             <>
-                                <AboutApp />
+                                <AboutApp close={close} />
                             </>
                         )}
                     >
