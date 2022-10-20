@@ -1,6 +1,7 @@
 import './App.css';
 import React from 'react';
 import { brainfuckRun, runInputInstruction } from './interpreter_engine/brainfuck';
+import { runCortlang } from './interpreter_engine/cortlang';
 import { E_COMPLETE, E_IO_PAUSE, E_SYNTAX_ERR } from './interpreter_engine/brainfuck_constants';
 import Editor from '@monaco-editor/react';
 import 'bootstrap/dist/css/bootstrap.css';
@@ -22,15 +23,16 @@ class App extends React.Component {
         sourceCodeBuf: '',
         stdoutStr: '> ',
         execCode: E_COMPLETE
+      },
+      cortlangState: {
+        cortlangStack: [],
+        instructionPtr: 0,
+        sourceCodeBuf: '',
+        stdoutStr: '> ',
+        execCode: E_COMPLETE
       }
     };
     this.editorRef = React.createRef();
-  }
-
-  handleLanguageChange = (event) => {
-    this.setState({
-      selectedLang: event.target.value
-    });
   }
 
   /* ----------------------------------------- EDITOR UI Handlers ------------------------------ */
@@ -39,14 +41,19 @@ class App extends React.Component {
   }
 
   handleEditorChange = (value, event) => {
-    var {brainfuckState} = this.state;
+    var {brainfuckState, cortlangState} = this.state;
     const canExecute = (value !== '');
     brainfuckState = {
       ...brainfuckState,
       sourceCodeBuf: value
     };
+    cortlangState = {
+      ...cortlangState,
+      sourceCodeBuf: value
+    }
     this.setState({
       brainfuckState,
+      cortlangState,
       canExecute
     });
   }
@@ -87,6 +94,12 @@ class App extends React.Component {
   }
 
   /* -------------------------------------- TOOLBAR Button handlers ------------------------------------ */
+  handleLanguageChange = (event) => {
+    this.setState({
+      selectedLang: event.target.value
+    });
+  }
+
   handleClickResetBtn = () => {
     this.setState({
       consoleBufEndPtr: 2, 
@@ -99,36 +112,69 @@ class App extends React.Component {
         sourceCodeBuf: '',
         stdoutStr: '> ',
         execCode: E_COMPLETE
+      },
+      cortlangState: {
+        cortlangStack: [],
+        instructionPtr: 0,
+        sourceCodeBuf: '',
+        stdoutStr: '> ',
+        execCode: E_COMPLETE
       }
     });
   }
 
   handleClickRunBtn = () => { 
-    const {brainfuckState} = this.state;
-    var newBFState = brainfuckRun(brainfuckState);
-    var ioWait = false;
-    if (newBFState.execCode === E_SYNTAX_ERR) {
-      window.alert("Syntax error");
+    const {selectedLang} = this.state;
+    if (selectedLang === 'Brainfuck') {
+      const {brainfuckState} = this.state;
+      var newBFState = brainfuckRun(brainfuckState);
+      var ioWait = false;
+      if (newBFState.execCode === E_SYNTAX_ERR) {
+        window.alert("Syntax error");
+      }
+      else {
+        ioWait = (newBFState.execCode === E_IO_PAUSE);
+      }
+      this.setState({
+        ioWait,
+        brainfuckState: newBFState,
+        consoleBufEndPtr: newBFState.stdoutStr.length
+      });
     }
-    else {
-      ioWait = (newBFState.execCode === E_IO_PAUSE);
+    else if (selectedLang === '11CORTLANG') {
+      const {cortlangState} = this.state;
+      var newCortlangState = runCortlang(cortlangState);
+      var ioWait = (newCortlangState.execCode === E_IO_PAUSE);
+      this.setState({
+        ioWait,
+        cortlangState: newCortlangState,
+        consoleBufEndPtr: newCortlangState.stdoutStr.length
+      });
     }
-    this.setState({
-      ioWait,
-      brainfuckState: newBFState,
-      consoleBufEndPtr: newBFState.stdoutStr.length
-    });
+    
   }
 
 
   render = () => {
-    const {brainfuckState: {sourceCodeBuf, stdoutStr}, ioWait, canExecute} = this.state;
+    const {brainfuckState, cortlangState, selectedLang, ioWait, canExecute} = this.state;
+    var sourceCodeBuf = '';
+    var stdoutStr = '';
+    if (selectedLang === 'Brainfuck') {
+      sourceCodeBuf = brainfuckState.sourceCodeBuf;
+      stdoutStr = brainfuckState.stdoutStr;
+    }
+    else if (selectedLang === '11CORTLANG') {
+      sourceCodeBuf = cortlangState.sourceCodeBuf;
+      stdoutStr = cortlangState.stdoutStr;
+    }
+
     return (
       <div className="App">
         <Toolbar
           canExecute={canExecute}
           handleClickResetBtn={this.handleClickResetBtn}
           handleClickRunBtn={this.handleClickRunBtn}
+          handleLanguageChange={this.handleLanguageChange}
         />
         <div className="ide_box">
           <div className="editorDiv">
