@@ -6,6 +6,7 @@ import { E_COMPLETE, E_IO_PAUSE, E_SYNTAX_ERR } from './interpreter_engine/brain
 import Editor from '@monaco-editor/react';
 import 'bootstrap/dist/css/bootstrap.css';
 import Toolbar from './components/Toolbar/Toolbar';
+import { runABC } from './interpreter_engine/abc';
 
 class App extends React.Component {
   constructor(props) {
@@ -16,20 +17,24 @@ class App extends React.Component {
       userInputChar: '',
       canExecute: false,
       selectedLang: 'Brainfuck',
+      sourceCodeBuf: '',
+      stdoutStr: '> ',
       brainfuckState: {
         brainfuckTape: new Array(8192).fill(0),
         brainfuckTapePtr: 0,
         instructionPtr: 0,
-        sourceCodeBuf: '',
-        stdoutStr: '> ',
         execCode: E_COMPLETE
       },
       cortlangState: {
         cortlangStack: [],
         instructionPtr: 0,
-        sourceCodeBuf: '',
-        stdoutStr: '> ',
         execCode: E_COMPLETE
+      },
+      abcState: {
+        instructionPtr: 0,
+        execCode: E_COMPLETE,
+        stringMode: false,
+        acc: 0
       }
     };
     this.editorRef = React.createRef();
@@ -41,19 +46,10 @@ class App extends React.Component {
   }
 
   handleEditorChange = (value, event) => {
-    var {brainfuckState, cortlangState} = this.state;
     const canExecute = (value !== '');
-    brainfuckState = {
-      ...brainfuckState,
-      sourceCodeBuf: value
-    };
-    cortlangState = {
-      ...cortlangState,
-      sourceCodeBuf: value
-    }
+   
     this.setState({
-      brainfuckState,
-      cortlangState,
+      sourceCodeBuf: value,
       canExecute
     });
   }
@@ -105,28 +101,37 @@ class App extends React.Component {
       consoleBufEndPtr: 2, 
       ioWait: false,
       userInputChar: '',
+      sourceCodeBuf: '',
+      stdoutStr: '> ',
       brainfuckState: {
         brainfuckTape: new Array(8192).fill(0),
         brainfuckTapePtr: 0,
         instructionPtr: 0,
-        sourceCodeBuf: '',
-        stdoutStr: '> ',
         execCode: E_COMPLETE
       },
       cortlangState: {
         cortlangStack: [],
         instructionPtr: 0,
-        sourceCodeBuf: '',
-        stdoutStr: '> ',
         execCode: E_COMPLETE
+      },
+      abcState: {
+        stringMode: false,
+        acc: 0,
+        instructionPtr: 0
       }
     });
   }
 
   handleClickRunBtn = () => { 
-    const {selectedLang} = this.state;
+    const {selectedLang, sourceCodeBuf, stdoutStr} = this.state;
+
     if (selectedLang === 'Brainfuck') {
-      const {brainfuckState} = this.state;
+      var {brainfuckState} = this.state;
+      brainfuckState = {
+        ...brainfuckState,
+        sourceCodeBuf,
+        stdoutStr
+      }
       var newBFState = brainfuckRun(brainfuckState);
       var ioWait = false;
       if (newBFState.execCode === E_SYNTAX_ERR) {
@@ -138,36 +143,50 @@ class App extends React.Component {
       this.setState({
         ioWait,
         brainfuckState: newBFState,
+        stdoutStr: newBFState.stdoutStr,
         consoleBufEndPtr: newBFState.stdoutStr.length
       });
     }
+
     else if (selectedLang === '11CORTLANG') {
-      const {cortlangState} = this.state;
+      var {cortlangState} = this.state;
+      cortlangState = {
+        ...cortlangState,
+        sourceCodeBuf,
+        stdoutStr
+      };
       var newCortlangState = runCortlang(cortlangState);
       var ioWait = (newCortlangState.execCode === E_IO_PAUSE);
       this.setState({
         ioWait,
         cortlangState: newCortlangState,
-        consoleBufEndPtr: newCortlangState.stdoutStr.length
+        consoleBufEndPtr: newCortlangState.stdoutStr.length,
+        stdoutStr: newCortlangState.stdoutStr
       });
     }
-    
+
+    else if (selectedLang === 'ABC') {
+      var {abcState} = this.state;
+      abcState = {
+        ...abcState,
+        sourceCodeBuf,
+        stdoutStr
+      };
+      var newAbcState = runABC(abcState);
+      var ioWait = (newAbcState.execCode === E_IO_PAUSE);
+      this.setState({
+        ioWait,
+        abcState: newAbcState,
+        consoleBufEndPtr: newAbcState.stdoutStr.length,
+        stdoutStr: newAbcState.stdoutStr
+      });
+    }
   }
 
 
   render = () => {
-    const {brainfuckState, cortlangState, selectedLang, ioWait, canExecute} = this.state;
-    var sourceCodeBuf = '';
-    var stdoutStr = '';
-    if (selectedLang === 'Brainfuck') {
-      sourceCodeBuf = brainfuckState.sourceCodeBuf;
-      stdoutStr = brainfuckState.stdoutStr;
-    }
-    else if (selectedLang === '11CORTLANG') {
-      sourceCodeBuf = cortlangState.sourceCodeBuf;
-      stdoutStr = cortlangState.stdoutStr;
-    }
-
+    const {sourceCodeBuf, stdoutStr, selectedLang, ioWait, canExecute} = this.state;
+   
     return (
       <div className="App">
         <Toolbar
