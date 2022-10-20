@@ -4,7 +4,7 @@ import { brainfuckRun, runInputInstruction } from './interpreter_engine/brainfuc
 import { E_COMPLETE, E_IO_PAUSE, E_SYNTAX_ERR } from './interpreter_engine/brainfuck_constants';
 import Editor from '@monaco-editor/react';
 import 'bootstrap/dist/css/bootstrap.css';
-import Toolbar from './Toolbar';
+import Toolbar from './components/Toolbar/Toolbar';
 
 class App extends React.Component {
   constructor(props) {
@@ -14,6 +14,7 @@ class App extends React.Component {
       ioWait: false,
       userInputChar: '',
       canExecute: false,
+      selectedLang: 'Brainfuck',
       brainfuckState: {
         brainfuckTape: new Array(8192).fill(0),
         brainfuckTapePtr: 0,
@@ -24,6 +25,12 @@ class App extends React.Component {
       }
     };
     this.editorRef = React.createRef();
+  }
+
+  handleLanguageChange = (event) => {
+    this.setState({
+      selectedLang: event.target.value
+    });
   }
 
   /* ----------------------------------------- EDITOR UI Handlers ------------------------------ */
