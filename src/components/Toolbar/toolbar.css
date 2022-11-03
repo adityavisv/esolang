@@ -1,7 +1,18 @@
 .run_btn {
     padding-left: 15px;
-  }
-  
-  .reset_btn {
+}
+
+.icon {
+    display: inline;
+}
+
+.reset_btn {
     padding-left: 15px;
-  }
+}
+
+.canvas {
+    width: 1500px;
+    max-width: 1000px;
+    height: 400px;
+    background-color: white;
+}

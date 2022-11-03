@@ -1,7 +1,7 @@
 import { E_IO_PAUSE, E_COMPLETE } from "./brainfuck_constants";
 
-export const runCortlang = (cortlangState) => {
-    var { sourceCodeBuf, instructionPtr, stdoutStr, execCode, cortlangStack } = cortlangState;
+export const runCortlang = (sourceCodeBuf, cortlangState) => {
+    var { instructionPtr, stdoutStr, execCode, cortlangStack } = cortlangState;
 
     const sourceCodeLines = sourceCodeBuf.split("\r\n");
     var nextCmdRepCount = 1;
@@ -102,6 +102,5 @@ export const runCortlang = (cortlangState) => {
         execCode,
         instructionPtr,
         cortlangStack,
-        sourceCodeBuf
     };
 }

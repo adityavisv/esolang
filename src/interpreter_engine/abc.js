@@ -1,7 +1,7 @@
 import { E_COMPLETE } from "./brainfuck_constants";
 
-export const runABC = (abcState) => {
-    var {acc, stdoutStr, sourceCodeBuf, instructionPtr, stringMode} = abcState;
+export const runABC = (sourceCodeBuf, abcState) => {
+    var {acc, stdoutStr, instructionPtr, stringMode} = abcState;
     for (; instructionPtr < sourceCodeBuf.length; instructionPtr++) {
         const instructionChar = sourceCodeBuf.charAt(instructionPtr);
         if (instructionChar === 'a') {
@@ -37,7 +37,6 @@ export const runABC = (abcState) => {
     }
     return {
         execCode: E_COMPLETE,
-        sourceCodeBuf,
         instructionPtr,
         acc,
         stringMode,

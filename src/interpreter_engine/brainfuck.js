@@ -1,9 +1,14 @@
-import { E_COMPLETE, E_IO_PAUSE, E_SYNTAX_ERR } from "./brainfuck_constants";
+import {
+    E_COMPLETE,
+    E_INCOMPLETE,
+    E_IO_PAUSE,
+    E_SYNTAX_ERR
+} from "./brainfuck_constants";
 
 const checkParentheses = (source_code_buf) => {
     var bracketCount = 0;
 
-    [...source_code_buf].forEach((c) => { 
+    [...source_code_buf].forEach((c) => {
         if (c === '[')
             bracketCount++;
         else if (c === ']')
@@ -12,8 +17,73 @@ const checkParentheses = (source_code_buf) => {
     return bracketCount === 0;
 }
 
+export const runSingleInstructionBrainfuck = (sourceCodeBuf, brainfuckState) => {
+    var {
+        brainfuckTape,
+        brainfuckTapePtr,
+        instructionPtr,
+        stdoutStr,
+        execCode
+    } = brainfuckState;
+    var instructionChar = sourceCodeBuf.charAt(instructionPtr);
+    if (instructionChar === '+') {
+        brainfuckTape[brainfuckTapePtr]++;
+    } else if (instructionChar === '-') {
+        brainfuckTape[brainfuckTapePtr]--;
+    } else if (instructionChar === '>') {
+        brainfuckTapePtr++;
+    } else if (instructionChar === '<') {
+        brainfuckTapePtr--;
+    } else if (instructionChar === '.') {
+        stdoutStr += String.fromCharCode(brainfuckTape[brainfuckTapePtr]);
+    } else if (instructionChar === ',') {
+        execCode = E_IO_PAUSE;
+        return {
+            stdoutStr,
+            instructionPtr: instructionPtr + 1,
+            brainfuckTape,
+            brainfuckTapePtr,
+            execCode
+        };
+    } else if (instructionChar === '[') {
+        if (!brainfuckTape[brainfuckTapePtr]) {
+            var bc = 1;
+            while (bc > 0) {
+                instructionChar =
+                    sourceCodeBuf.charAt(++instructionPtr);
+                if (instructionChar === ']')
+                    --bc;
+                else if (instructionChar === '[')
+                    ++bc;
+            }
+        }
+    } else if (instructionChar === ']') {
+        if (brainfuckTape[brainfuckTapePtr]) {
+            var bc = 1;
+            while (bc > 0) {
+                instructionChar = sourceCodeBuf.charAt(--instructionPtr)
+                if (instructionChar === '[')
+                    --bc;
+                else if (instructionChar === ']')
+                    ++bc;
+            }
+        }
+    }
+    return {
+        instructionPtr: instructionPtr + 1,
+        brainfuckTape,
+        brainfuckTapePtr,
+        execCode: instructionPtr === sourceCodeBuf.length ? E_COMPLETE : E_INCOMPLETE,
+        stdoutStr
+    };
+}
+
 export const runInputInstruction = (brainfuckState, inputCharacter) => {
-    var {brainfuckTape, brainfuckTapePtr, instructionPtr} = brainfuckState;
+    var {
+        brainfuckTape,
+        brainfuckTapePtr,
+        instructionPtr
+    } = brainfuckState;
     brainfuckTape[brainfuckTapePtr] = inputCharacter.charCodeAt(0);
     instructionPtr++;
     brainfuckState = {
@@ -25,12 +95,17 @@ export const runInputInstruction = (brainfuckState, inputCharacter) => {
     return brainfuckState;
 }
 
-export const brainfuckRun = (brainfuckState) => {
-    const {sourceCodeBuf} = brainfuckState;
-    var {brainfuckTape, brainfuckTapePtr, instructionPtr, stdoutStr, execCode} = brainfuckState;
+export const runBrainfuck = (sourceCodeBuf, brainfuckState) => {
+    var {
+        brainfuckTape,
+        brainfuckTapePtr,
+        instructionPtr,
+        stdoutStr,
+        execCode
+    } = brainfuckState;
 
     // run checks for parentheses
-    if ( ! checkParentheses(sourceCodeBuf) ) {
+    if (!checkParentheses(sourceCodeBuf)) {
         execCode = E_SYNTAX_ERR;
         return {
             ...brainfuckState,
@@ -42,11 +117,9 @@ export const brainfuckRun = (brainfuckState) => {
         var instructionChar = sourceCodeBuf.charAt(instructionPtr);
         if (instructionChar === '+') {
             brainfuckTape[brainfuckTapePtr]++;
-        }
-        else if (instructionChar === '-') {
+        } else if (instructionChar === '-') {
             brainfuckTape[brainfuckTapePtr]--;
-        }
-        else if (instructionChar === '>')
+        } else if (instructionChar === '>')
             brainfuckTapePtr++;
         else if (instructionChar === '<')
             brainfuckTapePtr--;
@@ -59,15 +132,12 @@ export const brainfuckRun = (brainfuckState) => {
                 instructionPtr,
                 brainfuckTape,
                 brainfuckTapePtr,
-                sourceCodeBuf,
                 execCode
             };
-        }
-        else if (instructionChar === '[') {
-            if( ! brainfuckTape[brainfuckTapePtr]) {
+        } else if (instructionChar === '[') {
+            if (!brainfuckTape[brainfuckTapePtr]) {
                 var bc = 1;
-                while (bc > 0)
-                {
+                while (bc > 0) {
                     instructionChar = brainfuckState.sourceCodeBuf.charAt(++brainfuckState.instructionPtr);
                     if (instructionChar === ']')
                         --bc;
@@ -75,12 +145,10 @@ export const brainfuckRun = (brainfuckState) => {
                         ++bc;
                 }
             }
-        }
-        else if (instructionChar === ']') {
+        } else if (instructionChar === ']') {
             if (brainfuckTape[brainfuckTapePtr]) {
                 var bc = 1;
-                while (bc > 0)
-                {
+                while (bc > 0) {
                     instructionChar = sourceCodeBuf.charAt(--instructionPtr)
                     if (instructionChar === '[')
                         --bc;
@@ -95,7 +163,6 @@ export const brainfuckRun = (brainfuckState) => {
         stdoutStr,
         execCode,
         instructionPtr,
-        sourceCodeBuf,
         brainfuckTape,
         brainfuckTapePtr
     };

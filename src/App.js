@@ -1,12 +1,13 @@
 import './App.css';
 import React from 'react';
-import { brainfuckRun, runInputInstruction } from './interpreter_engine/brainfuck';
+import { runBrainfuck, runInputInstruction } from './interpreter_engine/brainfuck';
 import { runCortlang } from './interpreter_engine/cortlang';
 import { E_COMPLETE, E_IO_PAUSE, E_SYNTAX_ERR } from './interpreter_engine/brainfuck_constants';
 import Editor from '@monaco-editor/react';
 import 'bootstrap/dist/css/bootstrap.css';
 import Toolbar from './components/Toolbar/Toolbar';
 import { runABC } from './interpreter_engine/abc';
+import { runDeadSimple } from './interpreter_engine/deadsimple';
 
 class App extends React.Component {
   constructor(props) {
@@ -34,6 +35,10 @@ class App extends React.Component {
         instructionPtr: 0,
         execCode: E_COMPLETE,
         stringMode: false,
+        acc: 0
+      },
+      deadSimpleState: {
+        instructionPtr: 0,
         acc: 0
       }
     };
@@ -77,7 +82,7 @@ class App extends React.Component {
       const userInputChar = stdoutStr.substr(consoleBufEndPtr);
 
       const newBrainfuckState = runInputInstruction(brainfuckState, userInputChar);
-      const finalBFState = brainfuckRun(newBrainfuckState);
+      const finalBFState = runBrainfuck(newBrainfuckState);
       const ioWait = finalBFState.execCode === E_IO_PAUSE;
       this.setState({
         brainfuckState: {
@@ -132,7 +137,7 @@ class App extends React.Component {
         sourceCodeBuf,
         stdoutStr
       }
-      var newBFState = brainfuckRun(brainfuckState);
+      var newBFState = runBrainfuck(sourceCodeBuf, brainfuckState);
       var ioWait = false;
       if (newBFState.execCode === E_SYNTAX_ERR) {
         window.alert("Syntax error");
@@ -152,10 +157,9 @@ class App extends React.Component {
       var {cortlangState} = this.state;
       cortlangState = {
         ...cortlangState,
-        sourceCodeBuf,
         stdoutStr
       };
-      var newCortlangState = runCortlang(cortlangState);
+      var newCortlangState = runCortlang(sourceCodeBuf, cortlangState);
       var ioWait = (newCortlangState.execCode === E_IO_PAUSE);
       this.setState({
         ioWait,
@@ -169,10 +173,9 @@ class App extends React.Component {
       var {abcState} = this.state;
       abcState = {
         ...abcState,
-        sourceCodeBuf,
         stdoutStr
       };
-      var newAbcState = runABC(abcState);
+      var newAbcState = runABC(sourceCodeBuf, abcState);
       var ioWait = (newAbcState.execCode === E_IO_PAUSE);
       this.setState({
         ioWait,
@@ -181,15 +184,34 @@ class App extends React.Component {
         stdoutStr: newAbcState.stdoutStr
       });
     }
+
+    else if (selectedLang === 'DeadSimple') {
+      var {deadSimpleState} = this.state;
+      deadSimpleState = {
+        ...deadSimpleState,
+        sourceCodeBuf,
+        stdoutStr
+      };
+      var newDeadSimpleState = runDeadSimple(sourceCodeBuf, deadSimpleState);
+      var ioWait = (newDeadSimpleState.execCode === E_IO_PAUSE);
+      this.setState({
+        ioWait,
+        deadSimpleState: newDeadSimpleState,
+        consoleBufEndPtr: newDeadSimpleState.stdoutStr.length,
+        stdoutStr: newDeadSimpleState.stdoutStr
+      });
+    }
   }
 
 
   render = () => {
-    const {sourceCodeBuf, stdoutStr, selectedLang, ioWait, canExecute} = this.state;
+    const {sourceCodeBuf, stdoutStr, brainfuckState, ioWait, canExecute} = this.state;
    
     return (
       <div className="App">
         <Toolbar
+          sourceCodeBuf={sourceCodeBuf}
+          brainfuckState={brainfuckState}
           canExecute={canExecute}
           handleClickResetBtn={this.handleClickResetBtn}
           handleClickRunBtn={this.handleClickRunBtn}
