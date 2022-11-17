@@ -8,41 +8,67 @@ import 'bootstrap/dist/css/bootstrap.css';
 import Toolbar from './components/Toolbar/Toolbar';
 import { runABC } from './interpreter_engine/abc';
 import { runDeadSimple } from './interpreter_engine/deadsimple';
+import { connect } from 'react-redux';
+import { runBrainfuckWhole } from './actions/brainfuck';
+import { runABCWhole } from './actions/abc';
+import { runDeadSimpleWhole } from './actions/deadsimple';
 
 class App extends React.Component {
   constructor(props) {
     super(props);
+    const {
+      consoleBufEndPtr,
+      ioWait,
+      stdoutStr,
+      brainfuckState,
+      cortlangState,
+      abcState,
+      deadSimpleState
+    } = this.props;
     this.state = {
-      consoleBufEndPtr: 2, 
-      ioWait: false,
+      consoleBufEndPtr, 
+      ioWait,
       userInputChar: '',
       canExecute: false,
       selectedLang: 'Brainfuck',
       sourceCodeBuf: '',
-      stdoutStr: '> ',
-      brainfuckState: {
-        brainfuckTape: new Array(8192).fill(0),
-        brainfuckTapePtr: 0,
-        instructionPtr: 0,
-        execCode: E_COMPLETE
-      },
-      cortlangState: {
-        cortlangStack: [],
-        instructionPtr: 0,
-        execCode: E_COMPLETE
-      },
-      abcState: {
-        instructionPtr: 0,
-        execCode: E_COMPLETE,
-        stringMode: false,
-        acc: 0
-      },
-      deadSimpleState: {
-        instructionPtr: 0,
-        acc: 0
-      }
+      stdoutStr,
+      brainfuckState,
+      cortlangState,
+      abcState,
+      deadSimpleState
     };
     this.editorRef = React.createRef();
+  }
+
+  componentDidUpdate = (prevProps, prevState) => {
+    if (this.props.ioWait !== prevProps.ioWait ||
+        this.props.consoleBufEndPtr !== prevProps.consoleBufEndPtr ||
+        this.props.stdoutStr !== prevProps.stdoutStr ||
+        this.props.brainfuckState !== prevProps.brainfuckState ||
+        this.props.cortlangState !== prevProps.cortlangState || 
+        this.props.abcState !== prevProps.abcState ||
+        this.props.deadSimpleState !== prevProps.deadSimpleState
+      ) {
+        const {
+          consoleBufEndPtr,
+          ioWait,
+          stdoutStr,
+          brainfuckState,
+          cortlangState,
+          abcState,
+          deadSimpleState
+        } = this.props;
+        this.setState({
+          consoleBufEndPtr,
+          ioWait,
+          stdoutStr,
+          brainfuckState,
+          cortlangState,
+          abcState,
+          deadSimpleState
+        });
+      }
   }
 
   /* ----------------------------------------- EDITOR UI Handlers ------------------------------ */
@@ -129,28 +155,15 @@ class App extends React.Component {
 
   handleClickRunBtn = () => { 
     const {selectedLang, sourceCodeBuf, stdoutStr} = this.state;
+    const { dispatch } = this.props;
 
     if (selectedLang === 'Brainfuck') {
       var {brainfuckState} = this.state;
       brainfuckState = {
         ...brainfuckState,
-        sourceCodeBuf,
         stdoutStr
       }
-      var newBFState = runBrainfuck(sourceCodeBuf, brainfuckState);
-      var ioWait = false;
-      if (newBFState.execCode === E_SYNTAX_ERR) {
-        window.alert("Syntax error");
-      }
-      else {
-        ioWait = (newBFState.execCode === E_IO_PAUSE);
-      }
-      this.setState({
-        ioWait,
-        brainfuckState: newBFState,
-        stdoutStr: newBFState.stdoutStr,
-        consoleBufEndPtr: newBFState.stdoutStr.length
-      });
+      dispatch(runBrainfuckWhole(sourceCodeBuf, brainfuckState));
     }
 
     else if (selectedLang === '11CORTLANG') {
@@ -175,31 +188,16 @@ class App extends React.Component {
         ...abcState,
         stdoutStr
       };
-      var newAbcState = runABC(sourceCodeBuf, abcState);
-      var ioWait = (newAbcState.execCode === E_IO_PAUSE);
-      this.setState({
-        ioWait,
-        abcState: newAbcState,
-        consoleBufEndPtr: newAbcState.stdoutStr.length,
-        stdoutStr: newAbcState.stdoutStr
-      });
+      dispatch(runABCWhole(sourceCodeBuf, abcState));
     }
 
     else if (selectedLang === 'DeadSimple') {
-      var {deadSimpleState} = this.state;
-      deadSimpleState = {
+
+      const {deadSimpleState} = this.state;
+      dispatch(runDeadSimpleWhole(sourceCodeBuf, {
         ...deadSimpleState,
-        sourceCodeBuf,
         stdoutStr
-      };
-      var newDeadSimpleState = runDeadSimple(sourceCodeBuf, deadSimpleState);
-      var ioWait = (newDeadSimpleState.execCode === E_IO_PAUSE);
-      this.setState({
-        ioWait,
-        deadSimpleState: newDeadSimpleState,
-        consoleBufEndPtr: newDeadSimpleState.stdoutStr.length,
-        stdoutStr: newDeadSimpleState.stdoutStr
-      });
+      }));
     }
   }
 
@@ -243,4 +241,18 @@ class App extends React.Component {
   }
 }
 
-export default App;
+function mapStateToProps(state) {
+  const { brainfuckState, cortlangState, deadSimpleState, ioWait, stdoutStr, consoleBufEndPtr, isError, abcState } = state.app;
+  return {
+    brainfuckState,
+    cortlangState,
+    deadSimpleState,
+    abcState,
+    ioWait,
+    stdoutStr,
+    consoleBufEndPtr,
+    isError
+  };
+}
+
+export default connect(mapStateToProps)(App);

@@ -5,7 +5,6 @@ import './toolbar.css';
 import 'bootstrap/dist/css/bootstrap.css';
 import InfoOverlay from '../InfoOverlay/InfoOverlay';
 import AboutApp from '../AboutApp/AboutApp';
-import Visualizer from '../../Visualizer/Visualizer';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlayCircle } from '@fortawesome/free-solid-svg-icons';
 import Debugger from '../Debugger/Debugger';
@@ -61,7 +60,7 @@ class Toolbar extends React.Component {
                                         </div>
                                     )}
                                     >
-                                        <Button variant="outline-secondary">
+                                        <Button variant="outline-secondary" disabled={!canExecute}>
                                             Debug
                                         </Button>
                                     </InfoOverlay>
