@@ -14,6 +14,10 @@ class AboutApp extends React.Component {
                     Supported languages:
                     <ul>
                         <li>Brainfuck</li>
+                        <li>ABC</li>
+                        <li>AlphaBeta</li>
+                        <li>DeadSimple</li>
+                        <li>11CORTLANG</li>
                     </ul>
                     <h5>Brainfuck</h5>
                     <ul>

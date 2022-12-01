@@ -1,9 +1,28 @@
+import {
+    E_COMPLETE
+} from "./brainfuck_constants";
+
 export const runAlphaBeta = (sourceCodeBuf, alphabetaState) => {
-    var { instructionPtr, regOne, regTwo, resultReg, memoryReg, positionReg, memoryArray, stdoutStr, memoryMode } = alphabetaState;
+    var {
+        instructionPtr,
+        regOne,
+        regTwo,
+        resultReg,
+        memoryReg,
+        positionReg,
+        memoryArray,
+        stdoutStr,
+        memoryMode
+    } = alphabetaState;
     var newPosition = -1;
-    for ( ; instructionPtr < sourceCodeBuf.length; instructionPtr++) {
+    do {
+        newPosition = instructionPtr;
+        if (!(instructionPtr >= 0 && instructionPtr < sourceCodeBuf.length))
+            return {};
+
+
         const instructionChar = sourceCodeBuf.charAt(instructionPtr);
-        switch(instructionChar) {
+        switch (instructionChar) {
             case 'a':
                 regOne++;
                 break;
@@ -185,11 +204,19 @@ export const runAlphaBeta = (sourceCodeBuf, alphabetaState) => {
                 memoryMode = !memoryMode;
                 break;
         }
+        instructionPtr = (instructionPtr === newPosition) ? instructionPtr + 1 : newPosition;
+    } while (instructionPtr < sourceCodeBuf.length);
 
-
-
-
-
-        }
+    return {
+        instructionPtr,
+        regOne,
+        regTwo,
+        resultReg,
+        memoryReg,
+        positionReg,
+        memoryArray,
+        stdoutStr,
+        memoryMode,
+        execCode: E_COMPLETE
     }
 }

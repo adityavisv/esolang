@@ -78,7 +78,7 @@ export const runSingleInstructionBrainfuck = (sourceCodeBuf, brainfuckState) => 
     };
 }
 
-export const runInputInstruction = (brainfuckState, inputCharacter) => {
+export const runInputInstruction = (inputCharacter, brainfuckState) => {
     var {
         brainfuckTape,
         brainfuckTapePtr,

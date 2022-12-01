@@ -1,74 +1,110 @@
 import './App.css';
 import React from 'react';
-import { runBrainfuck, runInputInstruction } from './interpreter_engine/brainfuck';
-import { runCortlang } from './interpreter_engine/cortlang';
 import { E_COMPLETE, E_IO_PAUSE, E_SYNTAX_ERR } from './interpreter_engine/brainfuck_constants';
 import Editor from '@monaco-editor/react';
 import 'bootstrap/dist/css/bootstrap.css';
 import Toolbar from './components/Toolbar/Toolbar';
-import { runABC } from './interpreter_engine/abc';
-import { runDeadSimple } from './interpreter_engine/deadsimple';
+import Debugger from './components/Debugger/Debugger';
 import { connect } from 'react-redux';
-import { runBrainfuckWhole } from './actions/brainfuck';
+import { brainfuckSetInputChar, runBrainfuckInputInstr, runBrainfuckWhole } from './actions/brainfuck';
 import { runABCWhole } from './actions/abc';
 import { runDeadSimpleWhole } from './actions/deadsimple';
+import { runCortlangWhole } from './actions/cortlang';
+import { resetAppState, updateSelectedLang, updateSourceCodeBuf, updateStdout } from './actions/user-interface';
+import { runAlphabetaWhole } from './actions/alphabeta';
+import { Modal } from 'react-bootstrap';
 
 class App extends React.Component {
   constructor(props) {
     super(props);
     const {
-      consoleBufEndPtr,
-      ioWait,
-      stdoutStr,
       brainfuckState,
       cortlangState,
       abcState,
-      deadSimpleState
+      deadSimpleState,
+      alphabetaState,
+      ioWait,
+      consoleBufEndPtr,
+      stdoutStr,
+      isError,
+      canExecute,
+      selectedLang,
+      sourceCodeBuf
     } = this.props;
     this.state = {
-      consoleBufEndPtr, 
-      ioWait,
-      userInputChar: '',
-      canExecute: false,
-      selectedLang: 'Brainfuck',
-      sourceCodeBuf: '',
-      stdoutStr,
       brainfuckState,
       cortlangState,
       abcState,
-      deadSimpleState
+      deadSimpleState,
+      alphabetaState,
+      ioWait,
+      consoleBufEndPtr,
+      stdoutStr,
+      isError,
+      canExecute,
+      selectedLang,
+      sourceCodeBuf,
+      showDebugger: false
     };
     this.editorRef = React.createRef();
   }
 
   componentDidUpdate = (prevProps, prevState) => {
-    if (this.props.ioWait !== prevProps.ioWait ||
-        this.props.consoleBufEndPtr !== prevProps.consoleBufEndPtr ||
-        this.props.stdoutStr !== prevProps.stdoutStr ||
-        this.props.brainfuckState !== prevProps.brainfuckState ||
-        this.props.cortlangState !== prevProps.cortlangState || 
-        this.props.abcState !== prevProps.abcState ||
-        this.props.deadSimpleState !== prevProps.deadSimpleState
-      ) {
-        const {
-          consoleBufEndPtr,
-          ioWait,
-          stdoutStr,
-          brainfuckState,
-          cortlangState,
-          abcState,
-          deadSimpleState
-        } = this.props;
-        this.setState({
-          consoleBufEndPtr,
-          ioWait,
-          stdoutStr,
-          brainfuckState,
-          cortlangState,
-          abcState,
-          deadSimpleState
-        });
-      }
+    if (this.props.brainfuckState !== prevProps.brainfuckState) {
+      this.setState({
+        brainfuckState: this.props.brainfuckState
+      });
+    }
+    if (this.props.cortlangState !== prevProps.cortlangState) {
+      this.setState({
+        cortlangState: this.props.cortlangState
+      });
+    }
+    if (this.props.abcState !== prevProps.abcState) {
+      this.setState({
+        abcState: this.props.abcState
+      });
+    }
+    if (this.props.deadSimpleState !== prevProps.deadSimpleState) {
+      this.setState({
+        deadSimpleState: this.props.deadSimpleState
+      });
+    }
+    if (this.props.ioWait !== prevProps.ioWait) {
+      this.setState({
+        ioWait: this.props.ioWait
+      });
+    }
+    if (this.props.consoleBufEndPtr !== prevProps.consoleBufEndPtr) {
+      this.setState({
+        consoleBufEndPtr: this.props.consoleBufEndPtr
+      });
+    }
+    if (this.props.stdoutStr !== prevProps.stdoutStr) {
+      this.setState({
+        stdoutStr: this.props.stdoutStr
+      });
+    }
+    if (this.props.isError !== prevProps.isError) {
+      this.setState({
+        isError: this.props.isError
+      });
+    }
+    if (this.props.canExecute !== prevProps.canExecute) {
+      this.setState({
+        canExecute: this.props.canExecute
+      });
+    }
+    if (this.props.selectedLang !== prevProps.selectedLang) {
+      this.setState({
+        selectedLang: this.props.selectedLang
+      });
+    }
+    if (this.props.sourceCodeBuf !== prevProps.sourceCodeBuf) {
+      this.setState({
+        sourceCodeBuf: this.props.sourceCodeBuf
+      });
+    }
   }
 
   /* ----------------------------------------- EDITOR UI Handlers ------------------------------ */
@@ -77,25 +113,15 @@ class App extends React.Component {
   }
 
   handleEditorChange = (value, event) => {
-    const canExecute = (value !== '');
-   
-    this.setState({
-      sourceCodeBuf: value,
-      canExecute
-    });
+    const { dispatch } = this.props;
+    dispatch(updateSourceCodeBuf(value));
   }
 
   /*------------------------------- CONSOLE UI Handlers ----------------------------------- */
   handleConsoleInput = (event) => {
     const consoleInputText = event.target.value;
-    var { brainfuckState } = this.state;
-    brainfuckState = {
-      ...brainfuckState,
-      stdoutStr: consoleInputText
-    };
-    this.setState ({
-      brainfuckState
-    });
+    const { dispatch } = this.props;
+    dispatch(updateStdout(consoleInputText));
   }
 
   handleConsoleKeyPress = (event) => {
@@ -104,53 +130,22 @@ class App extends React.Component {
       // Not doing this causes a weird bug where a '\n' gets inserted into the stdoutStr and messes with the code execution.
       event.preventDefault();
 
-      const { consoleBufEndPtr, brainfuckState, brainfuckState: {stdoutStr} } = this.state;
-      const userInputChar = stdoutStr.substr(consoleBufEndPtr);
-
-      const newBrainfuckState = runInputInstruction(brainfuckState, userInputChar);
-      const finalBFState = runBrainfuck(newBrainfuckState);
-      const ioWait = finalBFState.execCode === E_IO_PAUSE;
-      this.setState({
-        brainfuckState: {
-          ...finalBFState
-        },
-        consoleBufEndPtr: finalBFState.stdoutStr.length,
-        ioWait
-      });
+      
+      const { dispatch } = this.props;
+      dispatch(brainfuckSetInputChar());
+      
     }
   }
 
   /* -------------------------------------- TOOLBAR Button handlers ------------------------------------ */
   handleLanguageChange = (event) => {
-    this.setState({
-      selectedLang: event.target.value
-    });
+    const { dispatch } = this.props;
+    dispatch(updateSelectedLang(event.target.value));
   }
 
   handleClickResetBtn = () => {
-    this.setState({
-      consoleBufEndPtr: 2, 
-      ioWait: false,
-      userInputChar: '',
-      sourceCodeBuf: '',
-      stdoutStr: '> ',
-      brainfuckState: {
-        brainfuckTape: new Array(8192).fill(0),
-        brainfuckTapePtr: 0,
-        instructionPtr: 0,
-        execCode: E_COMPLETE
-      },
-      cortlangState: {
-        cortlangStack: [],
-        instructionPtr: 0,
-        execCode: E_COMPLETE
-      },
-      abcState: {
-        stringMode: false,
-        acc: 0,
-        instructionPtr: 0
-      }
-    });
+    const { dispatch } = this.props;
+    dispatch(resetAppState());
   }
 
   handleClickRunBtn = () => { 
@@ -172,16 +167,8 @@ class App extends React.Component {
         ...cortlangState,
         stdoutStr
       };
-      var newCortlangState = runCortlang(sourceCodeBuf, cortlangState);
-      var ioWait = (newCortlangState.execCode === E_IO_PAUSE);
-      this.setState({
-        ioWait,
-        cortlangState: newCortlangState,
-        consoleBufEndPtr: newCortlangState.stdoutStr.length,
-        stdoutStr: newCortlangState.stdoutStr
-      });
+      dispatch(runCortlangWhole(sourceCodeBuf, cortlangState));
     }
-
     else if (selectedLang === 'ABC') {
       var {abcState} = this.state;
       abcState = {
@@ -199,20 +186,44 @@ class App extends React.Component {
         stdoutStr
       }));
     }
+    else if (selectedLang === "AlphaBeta") {
+      const { alphabetaState } = this.state;
+      dispatch(runAlphabetaWhole(sourceCodeBuf, {
+        ...alphabetaState,
+        stdoutStr
+      }));
+    }
+  }
+
+  handleClickDebugBtn = () => {
+    this.setState({
+      showDebugger: true
+    });
+  }
+
+  /* ------------------------------------------- DEBUGGER CONTROL --------------------- */
+  handleCloseDebugger = () => {
+    const { dispatch } = this.props;
+    dispatch(resetAppState());
+    this.setState({
+      showDebugger: false
+    });
   }
 
 
   render = () => {
-    const {sourceCodeBuf, stdoutStr, brainfuckState, ioWait, canExecute} = this.state;
+    const {sourceCodeBuf, stdoutStr, brainfuckState, ioWait, canExecute, showDebugger, selectedLang} = this.state;
    
     return (
       <div className="App">
         <Toolbar
+          selectedLang={selectedLang}
           sourceCodeBuf={sourceCodeBuf}
           brainfuckState={brainfuckState}
           canExecute={canExecute}
           handleClickResetBtn={this.handleClickResetBtn}
           handleClickRunBtn={this.handleClickRunBtn}
+          handleClickDebugBtn={this.handleClickDebugBtn}
           handleLanguageChange={this.handleLanguageChange}
         />
         <div className="ide_box">
@@ -236,22 +247,52 @@ class App extends React.Component {
             />
           </div>
         </div>
+        <div className="debugger_modal">
+          <Modal show={showDebugger} onHide={this.handleCloseDebugger} size="lg">
+            <Modal.Header closeButton>
+              Brainfuck Debugger
+            </Modal.Header>
+            <Modal.Body>
+                <Debugger
+                    sourceCodeBuf={sourceCodeBuf}
+                    brainfuckState={brainfuckState}
+                    closeDebugger={this.handleCloseDebugger}
+                />
+            </Modal.Body>
+          </Modal>
+        </div>
       </div>
     );
   }
 }
 
 function mapStateToProps(state) {
-  const { brainfuckState, cortlangState, deadSimpleState, ioWait, stdoutStr, consoleBufEndPtr, isError, abcState } = state.app;
+  const { brainfuckState, 
+    cortlangState, 
+    abcState, 
+    deadSimpleState, 
+    alphabetaState,
+    ioWait,  
+    consoleBufEndPtr,  
+    stdoutStr, 
+    isError, 
+    canExecute, 
+    selectedLang, 
+    sourceCodeBuf 
+  } = state.app;
   return {
     brainfuckState,
     cortlangState,
-    deadSimpleState,
     abcState,
+    deadSimpleState,
+    alphabetaState,
     ioWait,
-    stdoutStr,
     consoleBufEndPtr,
-    isError
+    stdoutStr,
+    isError,
+    canExecute,
+    selectedLang,
+    sourceCodeBuf
   };
 }
 

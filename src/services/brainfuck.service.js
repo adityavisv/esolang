@@ -1,5 +1,6 @@
 import {
     runBrainfuck,
+    runInputInstruction,
     runSingleInstructionBrainfuck
 } from '../interpreter_engine/brainfuck';
 
@@ -11,6 +12,11 @@ class BrainfuckService {
 
     executeSingeInstr = (sourceCodeBuf, brainfuckState) => {
         const newBFState = runSingleInstructionBrainfuck(sourceCodeBuf, brainfuckState);
+        return newBFState;
+    }
+
+    executeInputInstr = (inputCharacter, brainfuckState) => {
+        const newBFState = runInputInstruction(inputCharacter, brainfuckState);
         return newBFState;
     }
 }

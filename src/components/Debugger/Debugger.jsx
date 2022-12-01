@@ -1,6 +1,8 @@
+import { faArrowAltCircleDown, faPlay, faStop } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
-import { Form, Container, Button } from 'react-bootstrap';
-import { runSingleInstructionBrainfuck } from '../../interpreter_engine/brainfuck';
+import {  Button } from 'react-bootstrap';
+import { runBrainfuck, runSingleInstructionBrainfuck } from '../../interpreter_engine/brainfuck';
 import './debugger.css';
 
 class Debugger extends React.Component {
@@ -72,18 +74,46 @@ class Debugger extends React.Component {
         });
     }
 
+    handleClickExecute = () => {
+        const { brainfuckState, sourceCodeBufSplit } = this.state;
+        const { sourceCodeBuf } = this.props;
+        const newBrainfuckState = runBrainfuck(sourceCodeBuf, brainfuckState);
+        this.setState({
+            brainfuckState: {
+                ...newBrainfuckState
+            }
+        });
+    }
+
     render = () => {
         const { sourceCodeBufSplit, brainfuckState: {brainfuckTape} } = this.state;
         return (
             <div>
-                <Button onClick={this.handleClickStepOver}>Step Over</Button>
-                <div className="debugger_box">
-                <div className="instruction_box">
-                    {this.renderInstructionWithDecoration()}
+                <div>
+                   
+                    <Button variant="primary" onClick={this.handleClickStepOver}><FontAwesomeIcon icon={faArrowAltCircleDown} fixedWidth />  Step Over</Button>
+                    <span id="executeBtn">
+                        <Button variant="primary" onClick={this.handleClickExecute}>
+                            
+                            <FontAwesomeIcon icon={faPlay} fixedWidth /> Execute</Button>
+                    </span>
+                    <span id="stopBtn">
+                        <Button variant="primary" onClick={this.props.closeDebugger}>
+                            <FontAwesomeIcon icon={faStop} fixedWidth /> Stop
+                        </Button>
+                    </span>
+                    
+                    
                 </div>
-                <div className="tape_box">
-                    {this.renderLiveBFTape()}
-                </div>
+                <div className="debug_data_box">
+                    <div className="debugger_box">
+                        <div className="instruction_box">
+                            {this.renderInstructionWithDecoration()}
+                        </div>
+                        <div className="tape_box">
+                            {this.renderLiveBFTape()}
+                        </div>
+                    </div>
                 </div>
                 
             </div>
