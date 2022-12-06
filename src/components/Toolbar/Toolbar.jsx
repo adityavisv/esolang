@@ -7,7 +7,6 @@ import InfoOverlay from '../InfoOverlay/InfoOverlay';
 import AboutApp from '../AboutApp/AboutApp';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBug, faPlayCircle, faUndo } from '@fortawesome/free-solid-svg-icons';
-import Debugger from '../Debugger/Debugger';
 
 class Toolbar extends React.Component {
     canDebug = () => {
@@ -19,7 +18,7 @@ class Toolbar extends React.Component {
     }
 
     render = () => {
-        const { canExecute, handleClickRunBtn, handleClickDebugBtn, handleClickResetBtn, handleLanguageChange, brainfuckState, sourceCodeBuf, selectedLang } = this.props;
+        const { canExecute, handleClickRunBtn, handleClickDebugBtn, handleClickResetBtn, handleLanguageChange, selectedLang } = this.props;
         return (
             <Navbar bg="dark" variant="dark">
                 <Container>

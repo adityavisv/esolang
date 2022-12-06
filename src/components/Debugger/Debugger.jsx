@@ -2,7 +2,7 @@ import { faArrowAltCircleDown, faPlay, faStop } from '@fortawesome/free-solid-sv
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
 import {  Button } from 'react-bootstrap';
-import { runBrainfuck, runSingleInstructionBrainfuck } from '../../interpreter_engine/brainfuck';
+import BrainfuckInterpreter from '../../interpreter_engine/brainfuck';
 import './debugger.css';
 
 class Debugger extends React.Component {
@@ -64,9 +64,9 @@ class Debugger extends React.Component {
     }
 
     handleClickStepOver = () => {
-        const { brainfuckState, sourceCodeBufSplit } = this.state;
+        const { brainfuckState } = this.state;
         const { sourceCodeBuf } = this.props;
-        const newBrainfuckState = runSingleInstructionBrainfuck(sourceCodeBuf, brainfuckState);
+        const newBrainfuckState = BrainfuckInterpreter.runSingleInstructionBrainfuck(sourceCodeBuf, brainfuckState);
         this.setState({
             brainfuckState: {
                 ...newBrainfuckState
@@ -75,9 +75,9 @@ class Debugger extends React.Component {
     }
 
     handleClickExecute = () => {
-        const { brainfuckState, sourceCodeBufSplit } = this.state;
+        const { brainfuckState } = this.state;
         const { sourceCodeBuf } = this.props;
-        const newBrainfuckState = runBrainfuck(sourceCodeBuf, brainfuckState);
+        const newBrainfuckState = BrainfuckInterpreter.runBrainfuck(sourceCodeBuf, brainfuckState);
         this.setState({
             brainfuckState: {
                 ...newBrainfuckState
@@ -86,7 +86,6 @@ class Debugger extends React.Component {
     }
 
     render = () => {
-        const { sourceCodeBufSplit, brainfuckState: {brainfuckTape} } = this.state;
         return (
             <div>
                 <div>

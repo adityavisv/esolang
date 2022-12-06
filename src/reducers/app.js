@@ -6,7 +6,6 @@ import {
     BRAINFUCK_EXEC_ERR,
     BRAINFUCK_EXEC_IO_PAUSE,
     BRAINFUCK_SET_INPUT_CHAR,
-    CONSOLE_BUF_END_PTR_UPDATE,
     CORTLANG_EXEC_COMPLETE,
     CORTLANG_EXEC_ERR,
     CORTLANG_EXEC_IO_PAUSE,
@@ -16,7 +15,6 @@ import {
     SOURCE_CODE_BUF_UPDATE,
     STDOUT_UPDATE
 } from "../actions/types";
-import BrainfuckService from "../services/brainfuck.service";
 
 import {
     E_COMPLETE,
@@ -24,6 +22,7 @@ import {
     E_IO_PAUSE,
     E_INCOMPLETE
 } from "../interpreter_engine/brainfuck_constants";
+import BrainfuckInterpreter from '../interpreter_engine/brainfuck';
 
 const initialState = {
     brainfuckState: {
@@ -159,8 +158,8 @@ export default function(state = initialState, action) {
                     ...bfState,
                     stdoutStr: stdoutStrPre
                 };
-                const postInputBFState = BrainfuckService.executeInputInstr(userInputChar, brainfuckState);
-                const finalBFState = BrainfuckService.executeSourceCodeBuf(sourceCodeBuf, postInputBFState);
+                const postInputBFState = BrainfuckInterpreter.runInputInstruction(userInputChar, brainfuckState);
+                const finalBFState = BrainfuckInterpreter.runBrainfuck(sourceCodeBuf, postInputBFState);
 
                 const {
                     instructionPtr,
@@ -214,6 +213,8 @@ export default function(state = initialState, action) {
                             stdoutStr,
                             consoleBufEndPtr: consoleEndPtr + 1
                         };
+                    default:
+                        return state;
                 }
             }
         case ABC_EXEC_COMPLETE:

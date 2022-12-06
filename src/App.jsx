@@ -1,17 +1,16 @@
 import './App.css';
 import React from 'react';
-import { E_COMPLETE, E_IO_PAUSE, E_SYNTAX_ERR } from './interpreter_engine/brainfuck_constants';
 import Editor from '@monaco-editor/react';
 import 'bootstrap/dist/css/bootstrap.css';
 import Toolbar from './components/Toolbar/Toolbar';
 import Debugger from './components/Debugger/Debugger';
 import { connect } from 'react-redux';
-import { brainfuckSetInputChar, runBrainfuckInputInstr, runBrainfuckWhole } from './actions/brainfuck';
-import { runABCWhole } from './actions/abc';
-import { runDeadSimpleWhole } from './actions/deadsimple';
-import { runCortlangWhole } from './actions/cortlang';
-import { resetAppState, updateSelectedLang, updateSourceCodeBuf, updateStdout } from './actions/user-interface';
-import { runAlphabetaWhole } from './actions/alphabeta';
+import BrainfuckActions from './actions/brainfuck';
+import AlphabetaActions from './actions/alphabeta';
+import ABCActions from './actions/abc';
+import CortlangActions from './actions/cortlang';
+import DeadSimpleActions from './actions/deadsimple';
+import UserInterfaceActions from './actions/user-interface';
 import { Modal } from 'react-bootstrap';
 
 class App extends React.Component {
@@ -114,14 +113,14 @@ class App extends React.Component {
 
   handleEditorChange = (value, event) => {
     const { dispatch } = this.props;
-    dispatch(updateSourceCodeBuf(value));
+    dispatch(UserInterfaceActions.updateSourceCodeBuf(value));
   }
 
   /*------------------------------- CONSOLE UI Handlers ----------------------------------- */
   handleConsoleInput = (event) => {
     const consoleInputText = event.target.value;
     const { dispatch } = this.props;
-    dispatch(updateStdout(consoleInputText));
+    dispatch(UserInterfaceActions.updateStdout(consoleInputText));
   }
 
   handleConsoleKeyPress = (event) => {
@@ -130,9 +129,12 @@ class App extends React.Component {
       // Not doing this causes a weird bug where a '\n' gets inserted into the stdoutStr and messes with the code execution.
       event.preventDefault();
 
-      
-      const { dispatch } = this.props;
-      dispatch(brainfuckSetInputChar());
+      const { selectedLang } = this.state;
+      if (selectedLang === 'Brainfuck') {
+
+        const { dispatch } = this.props;
+        dispatch(BrainfuckActions.brainfuckSetInputChar());
+      }
       
     }
   }
@@ -140,12 +142,12 @@ class App extends React.Component {
   /* -------------------------------------- TOOLBAR Button handlers ------------------------------------ */
   handleLanguageChange = (event) => {
     const { dispatch } = this.props;
-    dispatch(updateSelectedLang(event.target.value));
+    dispatch(UserInterfaceActions.updateSelectedLang(event.target.value));
   }
 
   handleClickResetBtn = () => {
     const { dispatch } = this.props;
-    dispatch(resetAppState());
+    dispatch(UserInterfaceActions.resetAppState());
   }
 
   handleClickRunBtn = () => { 
@@ -158,7 +160,7 @@ class App extends React.Component {
         ...brainfuckState,
         stdoutStr
       }
-      dispatch(runBrainfuckWhole(sourceCodeBuf, brainfuckState));
+      dispatch(BrainfuckActions.runBrainfuckWhole(sourceCodeBuf, brainfuckState));
     }
 
     else if (selectedLang === '11CORTLANG') {
@@ -167,7 +169,7 @@ class App extends React.Component {
         ...cortlangState,
         stdoutStr
       };
-      dispatch(runCortlangWhole(sourceCodeBuf, cortlangState));
+      dispatch(CortlangActions.runCortlangWhole(sourceCodeBuf, cortlangState));
     }
     else if (selectedLang === 'ABC') {
       var {abcState} = this.state;
@@ -175,20 +177,20 @@ class App extends React.Component {
         ...abcState,
         stdoutStr
       };
-      dispatch(runABCWhole(sourceCodeBuf, abcState));
+      dispatch(ABCActions.runABCWhole(sourceCodeBuf, abcState));
     }
 
     else if (selectedLang === 'DeadSimple') {
 
       const {deadSimpleState} = this.state;
-      dispatch(runDeadSimpleWhole(sourceCodeBuf, {
+      dispatch(DeadSimpleActions.runDeadSimpleWhole(sourceCodeBuf, {
         ...deadSimpleState,
         stdoutStr
       }));
     }
     else if (selectedLang === "AlphaBeta") {
       const { alphabetaState } = this.state;
-      dispatch(runAlphabetaWhole(sourceCodeBuf, {
+      dispatch(AlphabetaActions.runAlphabetaWhole(sourceCodeBuf, {
         ...alphabetaState,
         stdoutStr
       }));
@@ -204,7 +206,7 @@ class App extends React.Component {
   /* ------------------------------------------- DEBUGGER CONTROL --------------------- */
   handleCloseDebugger = () => {
     const { dispatch } = this.props;
-    dispatch(resetAppState());
+    dispatch(UserInterfaceActions.resetAppState());
     this.setState({
       showDebugger: false
     });
