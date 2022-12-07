@@ -1,3 +1,5 @@
+/* eslint-disable default-case */
+import { E_IO_PAUSE_J, E_IO_PAUSE_K } from "./alphabeta_constants";
 import {
     E_COMPLETE
 } from "./brainfuck_constants";
@@ -130,9 +132,31 @@ class AlphabetaInterpreter {
                     memoryArray[memoryReg] = resultReg;
                     break;
                 case 'J':
+                    return {
+                        instructionPtr,
+                        regOne,
+                        regTwo,
+                        resultReg,
+                        memoryReg,
+                        positionReg,
+                        memoryArray,
+                        stdoutStr,
+                        memoryMode,
+                        execCode: E_IO_PAUSE_J
+                    };
                 case 'K':
-                    // todo 
-                    break;
+                    return {
+                        instructionPtr,
+                        regOne,
+                        regTwo,
+                        resultReg,
+                        memoryReg,
+                        positionReg,
+                        memoryArray,
+                        stdoutStr,
+                        memoryMode,
+                        execCode: E_IO_PAUSE_K
+                    }; 
                 case 'L':
                     stdoutStr += String.fromCharCode(resultReg);
                     break;
@@ -220,6 +244,29 @@ class AlphabetaInterpreter {
             memoryMode,
             execCode: E_COMPLETE
         }
+    }
+
+    runInputInstruction = (userInputChar, alphabetaState) => {
+        var {
+            execCode,
+            regOne,
+            regTwo,
+            instructionPtr
+        } = alphabetaState;
+        switch(execCode) {
+            case E_IO_PAUSE_J:
+                regOne = userInputChar.charCodeAt(0);
+                break;
+            case E_IO_PAUSE_K:
+                regTwo = userInputChar.charCodeAt(0);
+                break;
+        }
+        return {
+            ...alphabetaState,
+            regOne,
+            regTwo,
+            instructionPtr: instructionPtr + 1
+        };
     }
 }
 

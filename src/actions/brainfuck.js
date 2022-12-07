@@ -1,3 +1,4 @@
+/* eslint-disable default-case */
 import {
     E_COMPLETE,
     E_IO_PAUSE,

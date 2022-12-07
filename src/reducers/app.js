@@ -1,7 +1,12 @@
+/* eslint-disable default-case */
 /* eslint-disable import/no-anonymous-default-export */
 import {
     ABC_EXEC_COMPLETE,
     ALPHABETA_EXEC_COMPLETE,
+    ALPHABETA_IO_PAUSE,
+    ALPHABETA_SET_INPUT_CHAR,
+    ALPHABETA_SET_INPUT_CHAR_J,
+    ALPHABETA_SET_INPUT_CHAR_K,
     BRAINFUCK_EXEC_COMPLETE,
     BRAINFUCK_EXEC_ERR,
     BRAINFUCK_EXEC_IO_PAUSE,
@@ -23,6 +28,8 @@ import {
     E_INCOMPLETE
 } from "../interpreter_engine/brainfuck_constants";
 import BrainfuckInterpreter from '../interpreter_engine/brainfuck';
+import AlphabetaInterpreter from '../interpreter_engine/alphabeta';
+import { E_IO_PAUSE_J, E_IO_PAUSE_K } from "../interpreter_engine/alphabeta_constants";
 
 const initialState = {
     brainfuckState: {
@@ -362,6 +369,111 @@ export default function(state = initialState, action) {
                         execCode
                     }
                 };
+            }
+        case ALPHABETA_IO_PAUSE: {
+            const {
+                alphabetaState: {
+                    instructionPtr,
+                    regOne,
+                    regTwo,
+                    resultReg,
+                    memoryReg,
+                    positionReg,
+                    memoryArray,
+                    stdoutStr,
+                    memoryMode,
+                    execCode
+                }
+            } = payload;
+            return {
+                ...state,
+                ioWait: true,
+                stdoutStr,
+                isError: false,
+                alphabetaState: {
+                    instructionPtr,
+                    regOne,
+                    regTwo,
+                    resultReg,
+                    memoryReg,
+                    positionReg,
+                    memoryArray,
+                    memoryMode,
+                    execCode
+                }
+            };
+        }
+        case ALPHABETA_SET_INPUT_CHAR:
+            {
+                const {
+                    consoleBufEndPtr: consoleEndPtr,
+                    stdoutStr: stdoutStrPre,
+                    alphabetaState: abState,
+                    sourceCodeBuf
+                } = state;
+                const userInputChar = stdoutStrPre.substr(consoleEndPtr);
+                const alphabetaState = {
+                    ...abState,
+                    stdoutStr: stdoutStrPre
+                };
+                const postInputAlphabetaState = AlphabetaInterpreter.runInputInstruction(userInputChar, alphabetaState);
+                const finalAlphabetaState = AlphabetaInterpreter.runAlphaBeta(sourceCodeBuf, postInputAlphabetaState);
+                const {
+                    instructionPtr,
+                    regOne,
+                    regTwo,
+                    resultReg,
+                    memoryReg,
+                    positionReg,
+                    memoryArray,
+                    memoryMode,
+                    execCode,
+                    stdoutStr
+                } = finalAlphabetaState;
+                switch(execCode) {
+                    case E_COMPLETE: {
+                        return {
+                            ...state,
+                            stdoutStr,
+                            ioWait: false,
+                            isError: false,
+                            consoleBufEndPtr: consoleEndPtr + 1,
+                            alphabetaState: {
+                                regOne, 
+                                regTwo,
+                                resultReg,
+                                positionReg,
+                                instructionPtr,
+                                memoryArray,
+                                memoryReg,
+                                memoryMode,
+                                execCode
+                            }
+                        }
+                    }
+                    case E_IO_PAUSE_J:
+                    case E_IO_PAUSE_K: {
+                        return {
+                            ...state,
+                            stdoutStr,
+                            ioWait: true,
+                            isError: false,
+                            consoleBufEndPtr: consoleEndPtr + 1,
+                            alphabetaState: {
+                                regOne, 
+                                regTwo,
+                                resultReg,
+                                positionReg,
+                                instructionPtr,
+                                memoryArray,
+                                memoryReg,
+                                memoryMode,
+                                execCode
+                            }
+                        }
+                    }
+                }
+                break;
             }
         case STDOUT_UPDATE:
             {

@@ -130,10 +130,12 @@ class App extends React.Component {
       event.preventDefault();
 
       const { selectedLang } = this.state;
+      const { dispatch } = this.props;
       if (selectedLang === 'Brainfuck') {
-
-        const { dispatch } = this.props;
-        dispatch(BrainfuckActions.brainfuckSetInputChar());
+        dispatch(BrainfuckActions.setInputChar());
+      }
+      else if (selectedLang === 'AlphaBeta') {
+        dispatch(AlphabetaActions.setInputChar());
       }
       
     }
@@ -160,7 +162,7 @@ class App extends React.Component {
         ...brainfuckState,
         stdoutStr
       }
-      dispatch(BrainfuckActions.runBrainfuckWhole(sourceCodeBuf, brainfuckState));
+      dispatch(BrainfuckActions.runWhole(sourceCodeBuf, brainfuckState));
     }
 
     else if (selectedLang === '11CORTLANG') {
