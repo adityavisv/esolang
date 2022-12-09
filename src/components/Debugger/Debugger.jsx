@@ -27,7 +27,7 @@ class Debugger extends React.Component {
         const instructionLines = Array.from(sourceCodeBufSplit).map((instruction, index) => (
             <>
 
-            <span className={instructionPtr === index ? "current_instruction" : "instruction"}>{instruction}</span>
+                <span key={`instr${index}`} className={instructionPtr === index ? "current_instruction" : "instruction"}>{instruction}</span>
             <br/>
             </>
         ));
@@ -50,7 +50,7 @@ class Debugger extends React.Component {
         const { brainfuckState: { brainfuckTape, brainfuckTapePtr } } = this.state;
         const bfTapeElement = Array.from(brainfuckTape).map((cell, index) => (
             <>
-                <span>{brainfuckTapePtr === index ? '->' : ''} {cell},</span>
+                <span key={`tape${index}`}>{brainfuckTapePtr === index ? '->' : ''} {cell},</span>
                 <br/>
             </>
         ));

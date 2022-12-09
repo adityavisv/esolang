@@ -10,19 +10,20 @@ class AboutApp extends React.Component {
             <CloseButton onClick={close} id="close_btn"/>
             <div className="text">
                 <h3>About</h3>
-                    W-Esolang is a simple interpreter sandbox for <a href="https://www.esolangs.org">esoteric languages</a>. For more context, refer to the linked wiki.<br/>
-                    Supported languages:
+                    W-Esolang is a simple interpreter sandbox for <a href="https://www.esolangs.org">esoteric languages</a>. <br></br> For more context, refer to the linked wiki.<br/>
+                    Source Code at <a href="https://gihtub.com/adityavisv/esolang">Github</a>. Supported languages:
+                    
                     <ul>
-                        <li>Brainfuck</li>
-                        <li>ABC</li>
-                        <li>AlphaBeta</li>
-                        <li>DeadSimple</li>
-                        <li>11CORTLANG</li>
+                        <li>Brainfuck (debugger support included)</li>
+                        <li>ABC (debugger <span className="bold">NOT</span> supported)</li>
+                        <li>AlphaBeta (debugger <span className="bold">NOT</span> supported)</li>
+                        <li>DeadSimple (debugger <span className="bold">NOT</span> supported)</li>
+                        <li>11CORTLANG (debugger <span className="bold">NOT</span> supported)</li>
                     </ul>
-                    <h5>Brainfuck</h5>
+                    
+                    <h5>Notes</h5>
                     <ul>
-                        <li>All characters outside the 8 defined commands are ignored entirely.</li>
-                        <li>While the official language spec clarifies that the <code>,</code> command is to be treated like<br/>
+                        <li>All the input instructions in each language are single character inputs, like the<br/>
                         <code>getchar()</code> from the C programming language; Here, all value inputs require a <code>&lt;Return&gt;</code> <br/>
                         for the user input to be registered.</li>
                         <li><b>BUG:</b> Explicitly feeding a CR/LF into <code>stdin</code> using <code>&lt;Return&gt;</code> is not supported.<br/>

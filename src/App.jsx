@@ -11,7 +11,7 @@ import ABCActions from './actions/abc';
 import CortlangActions from './actions/cortlang';
 import DeadSimpleActions from './actions/deadsimple';
 import UserInterfaceActions from './actions/user-interface';
-import { Modal } from 'react-bootstrap';
+import { Alert, Modal } from 'react-bootstrap';
 
 class App extends React.Component {
   constructor(props) {
@@ -43,7 +43,8 @@ class App extends React.Component {
       canExecute,
       selectedLang,
       sourceCodeBuf,
-      showDebugger: false
+      showDebugger: false,
+      showErrorModal: false
     };
     this.editorRef = React.createRef();
   }
@@ -86,7 +87,8 @@ class App extends React.Component {
     }
     if (this.props.isError !== prevProps.isError) {
       this.setState({
-        isError: this.props.isError
+        isError: this.props.isError,
+        showErrorModal: this.props.isError
       });
     }
     if (this.props.canExecute !== prevProps.canExecute) {
@@ -104,6 +106,13 @@ class App extends React.Component {
         sourceCodeBuf: this.props.sourceCodeBuf
       });
     }
+  }
+
+  /*------------------------------------------ MISC UI Handlers --------------------------------- */
+  hideErrorModal = () => {
+    this.setState({
+      showErrorModal: false
+    });
   }
 
   /* ----------------------------------------- EDITOR UI Handlers ------------------------------ */
@@ -216,10 +225,18 @@ class App extends React.Component {
 
 
   render = () => {
-    const {sourceCodeBuf, stdoutStr, brainfuckState, ioWait, canExecute, showDebugger, selectedLang} = this.state;
+    const {sourceCodeBuf, stdoutStr, brainfuckState, ioWait, canExecute, showDebugger, selectedLang, showErrorModal} = this.state;
    
     return (
       <div className="App">
+        <Modal show={showErrorModal} onHide={this.hideErrorModal}>
+          <Modal.Header closeButton>
+            <Modal.Title>Error!</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <Alert variant="danger">There is a syntax error in the source code. Please check again.</Alert>
+          </Modal.Body>
+        </Modal>
         <Toolbar
           selectedLang={selectedLang}
           sourceCodeBuf={sourceCodeBuf}
